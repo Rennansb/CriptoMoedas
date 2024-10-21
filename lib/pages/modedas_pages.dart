@@ -21,7 +21,7 @@ class _MoedasPagesState extends State<MoedasPages>
   )..forward();
 
   late final _animation =
-      CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn);
+      CurvedAnimation(parent: _controller, curve: Curves.linear);
 
   @override
   void dispose() {
@@ -128,13 +128,16 @@ class _MoedasPagesState extends State<MoedasPages>
                     },
                     onTap: () {
                       mostrarDetalhes(tabela[moeda]);
-                     setState(() {
+                      setState(() {
                         selecionada.remove(tabela[moeda]);
-                     });
+                      });
                     });
               },
               padding: const EdgeInsets.all(16),
-              separatorBuilder: (_, __) => const Divider(),
+              separatorBuilder: (_, __) => SizedBox(
+                height: 30,
+                child: const Divider(),
+              ),
               itemCount: tabela.length,
             ),
           ),
