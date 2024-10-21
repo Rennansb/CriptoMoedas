@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.rotas_navegacao">
+    package="com.example.tests">
    <application
-        android:label="rotas_navegacao"
+        android:label="tests"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

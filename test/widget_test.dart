@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:rotas_navegacao/main.dart';
 import 'package:rotas_navegacao/meuaplicativo.dart';
 
 void main() {
