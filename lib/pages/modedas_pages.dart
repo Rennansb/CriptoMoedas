@@ -1,166 +1,134 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:rotas_navegacao/models/moeda.dart';
-import 'package:rotas_navegacao/pages/moedas_detalhes_pages.dart';
-import 'package:rotas_navegacao/repositories/moeda_repository.dart';
-import 'package:intl/intl.dart';
 
-class MoedasPages extends StatefulWidget {
-  const MoedasPages({super.key});
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:rotas_navegacao/pages/moedas_detalhes_pages.dart';
+
+import '../models/moeda.dart';
+import '../repositories/favoritas_repository.dart';
+import '../repositories/moeda_repository.dart';
+
+class MoedasPage extends StatefulWidget {
+  MoedasPage({Key? key}) : super(key: key);
 
   @override
-  State<MoedasPages> createState() => _MoedasPagesState();
+  _MoedasPageState createState() => _MoedasPageState();
 }
 
-class _MoedasPagesState extends State<MoedasPages>
-    with TickerProviderStateMixin {
-  bool showFAB = true;
-  late final _controller = AnimationController(
-    duration: const Duration(microseconds: 800),
-    vsync: this,
-  )..forward();
-
-  late final _animation =
-      CurvedAnimation(parent: _controller, curve: Curves.linear);
-
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-    _animation.dispose();
-  }
-
+class _MoedasPageState extends State<MoedasPage> {
   final tabela = MoedaRepository.tabela;
-
-  NumberFormat real = NumberFormat.currency(locale: 'pt-BR', name: 'R\$');
-
-  List<Moeda> selecionada = [];
+  NumberFormat real = NumberFormat.currency(locale: 'pt_BR', name: 'R\$');
+  List<Moeda> selecionadas = [];
+  late FavoritasRepository favoritas;
 
   appBarDinamica() {
-    if (selecionada.isEmpty) {
-      return const SliverAppBar(
+    if (selecionadas.isEmpty) {
+      return AppBar(
         title: Text('Cripto Moedas'),
-        centerTitle: true,
-        snap: true,
-        floating: true,
-        backgroundColor: Colors.indigo,
       );
     } else {
-      return SliverAppBar(
-        backgroundColor: Colors.blueGrey[100],
+      return AppBar(
         leading: IconButton(
+          icon: Icon(Icons.arrow_back),
           onPressed: () {
-            setState(() {
-              selecionada = [];
-            });
+            limparSelecionadas();
           },
-          icon: const Icon(
-            Icons.arrow_back,
-          ),
         ),
-        title: Text('${selecionada.length} selecionadas'),
-        snap: true,
-        floating: true,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        titleTextStyle: const TextStyle(
-            color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold),
+        title: Text('${selecionadas.length} selecionadas'),
+        backgroundColor: Colors.blueGrey[50],
+        elevation: 1,
+        iconTheme: IconThemeData(color: Colors.black87),
+        
       );
     }
   }
 
   mostrarDetalhes(Moeda moeda) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (_) => MoedasDetalhesPages(moeda: moeda)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MoedasDetalhesPages(moeda: moeda),
+      ),
+    );
+  }
+
+  limparSelecionadas() {
+    setState(() {
+      selecionadas = [];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // favoritas = Provider.of<FavoritasRepository>(context);
+    favoritas = context.watch<FavoritasRepository>();
+
     return Scaffold(
-        body: NestedScrollView(
-          floatHeaderSlivers: true,
-          headerSliverBuilder: (context, __) => [
-            appBarDinamica(),
-          ],
-          body: NotificationListener<UserScrollNotification>(
-            onNotification: (scroll) {
-              if (scroll.direction == ScrollDirection.reverse && showFAB) {
-                _controller.reverse();
-                showFAB = false;
-              } else if (scroll.direction == ScrollDirection.forward &&
-                  !showFAB) {
-                _controller.forward();
-                showFAB = true;
-              }
-              return true;
-            },
-            child: ListView.separated(
-              itemBuilder: (BuildContext context, int moeda) {
-                return ListTile(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    leading: (selecionada.contains(tabela[moeda]))
-                        ? const CircleAvatar(
-                            child: Icon(Icons.check),
-                          )
-                        : SizedBox(
-                            width: 40,
-                            child: Image.asset(
-                              tabela[moeda].icone,
-                            ),
-                          ),
-                    title: Text(
-                      tabela[moeda].nome,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    trailing: Text(real.format(tabela[moeda].preco)),
-                    selected: selecionada.contains(tabela[moeda]),
-                    selectedTileColor: Colors.indigo[50],
-                    onLongPress: () {
-                      setState(() {
-                        (selecionada.contains(tabela[moeda]))
-                            ? selecionada.remove(tabela[moeda])
-                            : selecionada.add(tabela[moeda]);
-                      });
-                    },
-                    onTap: () {
-                      mostrarDetalhes(tabela[moeda]);
-                      setState(() {
-                        selecionada.remove(tabela[moeda]);
-                      });
-                    });
-              },
-              padding: const EdgeInsets.all(16),
-              separatorBuilder: (_, __) => SizedBox(
-                height: 30,
-                child: const Divider(),
-              ),
-              itemCount: tabela.length,
+      appBar: appBarDinamica(),
+      body: ListView.separated(
+        itemBuilder: (BuildContext context, int moeda) {
+          return ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: ScaleTransition(
-          scale: _animation,
-          child: selecionada.isNotEmpty
-              ? FloatingActionButton.extended(
-                  backgroundColor: Colors.indigo,
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.star,
-                    color: Colors.white,
+            leading: (selecionadas.contains(tabela[moeda]))
+                ? CircleAvatar(
+                    child: Icon(Icons.check),
+                  )
+                : SizedBox(
+                    child: Image.asset(tabela[moeda].icone),
+                    width: 40,
                   ),
-                  label: const Text(
-                    'FAVORITAR',
-                    style: TextStyle(
-                        letterSpacing: 0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ))
-              : null,
-        ));
+            title: Row(
+              children: [
+                Text(
+                  tabela[moeda].nome,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (favoritas.lista.contains(tabela[moeda]))
+                  Icon(Icons.circle, color: Colors.amber, size: 8),
+              ],
+            ),
+            trailing: Text(
+              real.format(tabela[moeda].preco),
+              style: TextStyle(fontSize: 15),
+            ),
+            selected: selecionadas.contains(tabela[moeda]),
+            selectedTileColor: Colors.indigo[50],
+            onLongPress: () {
+              setState(() {
+                (selecionadas.contains(tabela[moeda]))
+                    ? selecionadas.remove(tabela[moeda])
+                    : selecionadas.add(tabela[moeda]);
+              });
+            },
+            onTap: () => mostrarDetalhes(tabela[moeda]),
+          );
+        },
+        padding: EdgeInsets.all(16),
+        separatorBuilder: (_, ___) => Divider(),
+        itemCount: tabela.length,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: selecionadas.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                favoritas.saveAll(selecionadas);
+                limparSelecionadas();
+              },
+              icon: Icon(Icons.star),
+              label: Text(
+                'FAVORITAR',
+                style: TextStyle(
+                  letterSpacing: 0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : null,
+    );
   }
 }

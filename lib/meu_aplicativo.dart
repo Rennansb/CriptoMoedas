@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rotas_navegacao/pages/home_page.dart';
 
 import 'pages/modedas_pages.dart';
 
@@ -13,7 +14,7 @@ class MeuAplicativo extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.black,
       ),
-      home: const MoedasPages(),
+      home:  HomePage(),
     );
   }
 }
